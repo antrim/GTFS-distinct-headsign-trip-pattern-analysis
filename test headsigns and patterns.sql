@@ -80,9 +80,9 @@ SELECT unique_patterns.stops_pattern,route_id,direction_id,row_number() over() a
 
 )
 
-SELECT one_trip as example_trip,timed_patterns.agency_id,timed_patterns.stops_pattern,headsign_pattern,agency.agency_name,routes.route_short_name,routes.route_long_name,directions.direction_label,trips.direction_id,headsigns.headsign_id,headsigns.headsign,
+SELECT one_trip as example_trip,timed_patterns.agency_id,timed_patterns.stops_pattern,agency.agency_name,routes.route_short_name,routes.route_long_name,directions.direction_label,trips.direction_id,
 timed_pattern_id,
-stop_patterns.pattern_id
+stop_patterns.pattern_id, COUNT (DISTINCT headsigns.headsign_id::TEXT || headsigns.headsign || headsign_pattern) AS headsign_combo_count
 FROM timed_patterns
 inner JOIN stop_patterns ON (timed_patterns.stops_pattern = stop_patterns.stops_pattern AND timed_patterns.route_id = stop_patterns.route_id AND timed_patterns.direction_id = stop_patterns.direction_id)
 inner join trips on timed_patterns.one_trip = trips.trip_id
@@ -90,4 +90,5 @@ inner join routes on trips.route_id = routes.route_id
 left join directions on trips.direction_id = directions.direction_id
 left join headsigns on trips.headsign_id = headsigns.headsign_id
 inner join agency on trips.agency_id = agency.agency_id
-ORDER BY pattern_id,timed_pattern_id ASC
+GROUP BY example_trip,timed_patterns.agency_id,timed_patterns.stops_pattern,agency.agency_name,routes.route_short_name,routes.route_long_name,directions.direction_label,trips.direction_id,timed_pattern_id,stop_patterns.pattern_id
+ORDER BY headsign_combo_count DESC,pattern_id,timed_pattern_id ASC
